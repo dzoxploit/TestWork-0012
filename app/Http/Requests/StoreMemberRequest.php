@@ -13,7 +13,7 @@ class StoreMemberRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,8 +23,11 @@ class StoreMemberRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            //
-        ];
+         return [
+                'name' => 'required',
+                'address' => 'required',
+                'phone_number' => 'required',
+                'status' => 'required'
+            ];
     }
 }

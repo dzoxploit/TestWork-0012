@@ -5,82 +5,93 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use App\Http\Requests\StoreMemberRequest;
 use App\Http\Requests\UpdateMemberRequest;
+use App\Repositories\MemberRepository;
+use Exception;
+use Illuminate\Http\Request;
 
 class MemberController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+  
+    protected $repository;
+  
+    public function __construct(MemberRepository $repository)
     {
-        //
+        $this->repository = $repository;
     }
-
+  
     /**
-     * Show the form for creating a new resource.
+     * get list of all the posts.
      *
-     * @return \Illuminate\Http\Response
+     * @param $request: Illuminate\Http\Request
+     * @return json response
      */
-    public function create()
+    public function index(Request $request)
     {
-        //
+        $items = $this->repository->paginate($request);
+        return response()->json(['items' => $items]);
     }
-
+  
     /**
-     * Store a newly created resource in storage.
+     * store post data to database table.
      *
-     * @param  \App\Http\Requests\StoreMemberRequest  $request
-     * @return \Illuminate\Http\Response
+     * @param $request: App\Http\Requests\CreatePostRequest
+     * @return json response
      */
-    public function store(StoreMemberRequest $request)
+    public function store(CreateMemberRequest $request)
     {
-        //
+        try {
+            $item = $this->repository->store($request);
+            return response()->json(['item' => $item]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
-
+  
     /**
-     * Display the specified resource.
+     * update post data to database table.
      *
-     * @param  \App\Models\Member  $member
-     * @return \Illuminate\Http\Response
+     * @param $request: App\Http\Requests\UpdatePostRequest
+     * @return json response
      */
-    public function show(Member $member)
+    public function update($id, UpdateMemberRequest $request)
     {
-        //
+        try {
+            $item = $this->repository->update($id, $request);
+            return response()->json(['item' => $item]);
+        } catch (Exception $e) {
+           return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
-
+  
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Member  $member
-     * @return \Illuminate\Http\Response
+     * get single item by id.
+     * 
+     * @param integer $id: integer post id.
+     * @return json response.
      */
-    public function edit(Member $member)
+    public function show($id)
     {
-        //
+        try {
+            $item = $this->repository->show($id);
+            return response()->json(['item' => $item]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
-
+ 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateMemberRequest  $request
-     * @param  \App\Models\Member  $member
-     * @return \Illuminate\Http\Response
+     * delete post by id.
+     * 
+     * @param integer $id: integer post id.
+     * @return json response.
      */
-    public function update(UpdateMemberRequest $request, Member $member)
+    public function delete($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Member  $member
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Member $member)
-    {
-        //
+        try {
+            $this->repository->delete($id);
+            return response()->json([], 204);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
 }

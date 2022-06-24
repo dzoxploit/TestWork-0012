@@ -5,82 +5,103 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Repositories\ProductRepository;
+use Exception;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+  
+    protected $repository;
+  
+    public function __construct(ProductRepository $repository)
     {
-        //
+        $this->repository = $repository;
     }
-
+  
     /**
-     * Show the form for creating a new resource.
+     * get list of all the posts.
      *
-     * @return \Illuminate\Http\Response
+     * @param $request: Illuminate\Http\Request
+     * @return json response
      */
-    public function create()
+    public function index(Request $request)
     {
-        //
+        $items = $this->repository->paginate($request);
+        return response()->json(['items' => $items]);
     }
-
+  
     /**
-     * Store a newly created resource in storage.
+     * store post data to database table.
      *
-     * @param  \App\Http\Requests\StoreProductRequest  $request
-     * @return \Illuminate\Http\Response
+     * @param $request: App\Http\Requests\CreatePostRequest
+     * @return json response
      */
-    public function store(StoreProductRequest $request)
+    public function store(CreateProductRequest $request)
     {
-        //
+        try {
+            
+            $name = $request->file('image')->getClientOriginalName();
+            $path = $request->file('image')->store('public/files');
+            $request->image = $path;
+            
+            $item = $this->repository->store($request);
+            return response()->json(['item' => $item]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
-
+  
     /**
-     * Display the specified resource.
+     * update post data to database table.
      *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
+     * @param $request: App\Http\Requests\UpdatePostRequest
+     * @return json response
      */
-    public function show(Product $product)
+    public function update($id, UpdateProductRequest $request)
     {
-        //
+        try {
+            if($request->hasFile('image')){
+                $name = $request->file('image')->getClientOriginalName();
+                $path = $request->file('image')->store('public/files');
+                $request->image = $path;
+            }
+            $item = $this->repository->update($id, $request);
+            return response()->json(['item' => $item]);
+        } catch (Exception $e) {
+           return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
-
+  
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
+     * get single item by id.
+     * 
+     * @param integer $id: integer post id.
+     * @return json response.
      */
-    public function edit(Product $product)
+    public function show($id)
     {
-        //
+        try {
+            $item = $this->repository->show($id);
+            return response()->json(['item' => $item]);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
-
+ 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateProductRequest  $request
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
+     * delete post by id.
+     * 
+     * @param integer $id: integer post id.
+     * @return json response.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function delete($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Product $product)
-    {
-        //
+        try {
+            $this->repository->delete($id);
+            return response()->json([], 204);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatus());
+        }
     }
 }
