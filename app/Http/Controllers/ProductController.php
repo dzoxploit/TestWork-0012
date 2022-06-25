@@ -2,106 +2,90 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
-use App\Repositories\ProductRepository;
-use Exception;
+use App\Interfaces\ProductRepositoryInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
-class ProductController extends Controller
+class ProductController extends Controller 
 {
-  
-    protected $repository;
-  
-    public function __construct(ProductRepository $repository)
+    private ProductRepositoryInterface $productRepository;
+
+    public function __construct(ProductRepositoryInterface $productRepository) 
     {
-        $this->repository = $repository;
+        $this->productRepository = $productRepository;
     }
-  
-    /**
-     * get list of all the posts.
-     *
-     * @param $request: Illuminate\Http\Request
-     * @return json response
-     */
-    public function index(Request $request)
+
+    public function index(): JsonResponse 
     {
-        $items = $this->repository->paginate($request);
-        return response()->json(['items' => $items]);
+        return response()->json([
+            'data' => $this->productRepository->getAllProducts()
+        ]);
     }
-  
-    /**
-     * store post data to database table.
-     *
-     * @param $request: App\Http\Requests\CreatePostRequest
-     * @return json response
-     */
-    public function store(CreateProductRequest $request)
+
+    public function store(Request $request): JsonResponse 
     {
-        try {
-            
-            $name = $request->file('image')->getClientOriginalName();
-            $path = $request->file('image')->store('public/files');
-            $request->image = $path;
-            
-            $item = $this->repository->store($request);
-            return response()->json(['item' => $item]);
-        } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getStatus());
-        }
+        $name = $request->file('image')->getClientOriginalName();
+        $path = $request->file('image')->store('public/files');
+        $request->image = $path;
+
+        $request->is_delete = 0;
+        $productDetails = $request->only([
+            'name',
+            'description',
+            'price',
+            'image',
+            'stock',
+            'status',
+            'is_delete'
+        ]);
+
+        return response()->json(
+            [
+                'data' => $this->productRepository->createMember($productDetails)
+            ],
+            Response::HTTP_CREATED
+        );
     }
-  
-    /**
-     * update post data to database table.
-     *
-     * @param $request: App\Http\Requests\UpdatePostRequest
-     * @return json response
-     */
-    public function update($id, UpdateProductRequest $request)
+
+    public function show(Request $request): JsonResponse 
     {
-        try {
-            if($request->hasFile('image')){
+        $orderId = $request->route('id');
+
+        return response()->json([
+            'data' => $this->productRepository->getProductById($productId)
+        ]);
+    }
+
+    public function update(Request $request): JsonResponse 
+    {
+        $memberId = $request->route('id');
+        if($request->hasFile('image')){
                 $name = $request->file('image')->getClientOriginalName();
                 $path = $request->file('image')->store('public/files');
                 $request->image = $path;
-            }
-            $item = $this->repository->update($id, $request);
-            return response()->json(['item' => $item]);
-        } catch (Exception $e) {
-           return response()->json(['message' => $e->getMessage()], $e->getStatus());
         }
+
+          $productDetails = $request->only([
+            'name',
+            'description',
+            'price',
+            'image',
+            'stock',
+            'status',
+            'is_delete'
+        ]);
+
+        return response()->json([
+            'data' => $this->productRepository->updateProduct($productId, $productDetails)
+        ]);
     }
-  
-    /**
-     * get single item by id.
-     * 
-     * @param integer $id: integer post id.
-     * @return json response.
-     */
-    public function show($id)
+
+    public function destroy(Request $request): JsonResponse 
     {
-        try {
-            $item = $this->repository->show($id);
-            return response()->json(['item' => $item]);
-        } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getStatus());
-        }
-    }
- 
-    /**
-     * delete post by id.
-     * 
-     * @param integer $id: integer post id.
-     * @return json response.
-     */
-    public function delete($id)
-    {
-        try {
-            $this->repository->delete($id);
-            return response()->json([], 204);
-        } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getStatus());
-        }
+        $productId = $request->route('id');
+        $this->productRepository->deleteProduct($productId);
+
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

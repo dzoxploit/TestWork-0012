@@ -2,96 +2,77 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Member;
-use App\Http\Requests\StoreMemberRequest;
-use App\Http\Requests\UpdateMemberRequest;
-use App\Repositories\MemberRepository;
-use Exception;
+use App\Interfaces\MemberRepositoryInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
-class MemberController extends Controller
+class MemberController extends Controller 
 {
-  
-    protected $repository;
-  
-    public function __construct(MemberRepository $repository)
+    private MemberRepositoryInterface $memberRepository;
+
+    public function __construct(MemberRepositoryInterface $memberRepository) 
     {
-        $this->repository = $repository;
+        $this->memberRepository = $memberRepository;
     }
-  
-    /**
-     * get list of all the posts.
-     *
-     * @param $request: Illuminate\Http\Request
-     * @return json response
-     */
-    public function index(Request $request)
+
+    public function index(): JsonResponse 
     {
-        $items = $this->repository->paginate($request);
-        return response()->json(['items' => $items]);
+        return response()->json([
+            'data' => $this->memberRepository->getAllMembers()
+        ]);
     }
-  
-    /**
-     * store post data to database table.
-     *
-     * @param $request: App\Http\Requests\CreatePostRequest
-     * @return json response
-     */
-    public function store(CreateMemberRequest $request)
+
+    public function store(Request $request): JsonResponse 
     {
-        try {
-            $item = $this->repository->store($request);
-            return response()->json(['item' => $item]);
-        } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getStatus());
-        }
+        $request->no_member = IdGenerator::generate(['table' => 'members', 'length' => 10, 'prefix' =>'M-']);
+        $request->is_delete = 0;
+        $memberDetails = $request->only([
+            'no_member',
+            'name',
+            'address',
+            'phone_number',
+            'status',
+            'is_delete'
+        ]);
+
+        return response()->json(
+            [
+                'data' => $this->memberRepository->createMember($memberDetails)
+            ],
+            Response::HTTP_CREATED
+        );
     }
-  
-    /**
-     * update post data to database table.
-     *
-     * @param $request: App\Http\Requests\UpdatePostRequest
-     * @return json response
-     */
-    public function update($id, UpdateMemberRequest $request)
+
+    public function show(Request $request): JsonResponse 
     {
-        try {
-            $item = $this->repository->update($id, $request);
-            return response()->json(['item' => $item]);
-        } catch (Exception $e) {
-           return response()->json(['message' => $e->getMessage()], $e->getStatus());
-        }
+        $orderId = $request->route('id');
+
+        return response()->json([
+            'data' => $this->memberRepository->getMemberById($memberId)
+        ]);
     }
-  
-    /**
-     * get single item by id.
-     * 
-     * @param integer $id: integer post id.
-     * @return json response.
-     */
-    public function show($id)
+
+    public function update(Request $request): JsonResponse 
     {
-        try {
-            $item = $this->repository->show($id);
-            return response()->json(['item' => $item]);
-        } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getStatus());
-        }
+        $memberId = $request->route('id');
+         $memberDetails = $request->only([
+            'name',
+            'address',
+            'phone_number',
+            'status',
+        ]);
+
+        return response()->json([
+            'data' => $this->memberRepository->updateMember($memberId, $memberDetails)
+        ]);
     }
- 
-    /**
-     * delete post by id.
-     * 
-     * @param integer $id: integer post id.
-     * @return json response.
-     */
-    public function delete($id)
+
+    public function destroy(Request $request): JsonResponse 
     {
-        try {
-            $this->repository->delete($id);
-            return response()->json([], 204);
-        } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getStatus());
-        }
+        $memberId = $request->route('id');
+        $this->memberRepository->deleteMember($memberId);
+
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }
