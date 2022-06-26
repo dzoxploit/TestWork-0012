@@ -14,12 +14,17 @@ class ProductRepository implements MemberRepositoryInterface
 
     public function getProductById($productId) 
     {
-        return Product::findOrFail($productId);
+        return Product::where('is_delete','=',0)->findOrFail($productId);
     }
 
-    public function deleteProduct($productId) 
+    public function getProductByName($productName) 
     {
-        Product::destroy($productId);
+        return Product::where('is_delete','=',0)->where('name', 'LIKE', '%'. $productName . '%')->get();
+    }
+
+    public function deleteProduct($productId, array $newDetails) 
+    {
+        Product::where('id','=',$productId)->update($newDetails);
     }
 
     public function createProduct(array $productDetails) 
@@ -29,11 +34,11 @@ class ProductRepository implements MemberRepositoryInterface
 
     public function updateProduct($productId, array $newDetails) 
     {
-        return Product::whereId($productId)->update($newDetails);
+        return Product::where('is_delete','=',0)->whereId($productId)->update($newDetails);
     }
 
     public function getFulfilledProduct() 
     {
-        return Product::where('status', true);
+        return Product::where('status', true)->get();
     }
 }

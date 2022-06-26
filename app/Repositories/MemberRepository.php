@@ -14,12 +14,17 @@ class MemberRepository implements MemberRepositoryInterface
 
     public function getMemberById($memberId) 
     {
-        return Member::findOrFail($memberId);
+        return Member::where('is_delete','=',0)->findOrFail($memberId);
     }
 
-    public function deleteMember($memberId) 
+    public function getMemberByName($memberName) 
     {
-        Member::destroy($memberId);
+        return Member::where('is_delete','=',0)->where('name', 'LIKE', '%'. $memberName . '%')->get();
+    }
+
+    public function deleteMember($memberId, array $newDetails) 
+    {
+        Member::where('id','=',$memberId)->update($newDetails);
     }
 
     public function createMember(array $memberDetails) 
@@ -29,11 +34,11 @@ class MemberRepository implements MemberRepositoryInterface
 
     public function updateMember($memberId, array $newDetails) 
     {
-        return Member::whereId($memberId)->update($newDetails);
+        return Member::where('is_delete','=',0)->whereId($memberId)->update($newDetails);
     }
 
     public function getFulfilledMember() 
     {
-        return Member::where('status', true);
+        return Member::where('status', true)->get();
     }
 }
