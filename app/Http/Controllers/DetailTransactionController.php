@@ -2,85 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DetailTransaction;
-use App\Http\Requests\StoreDetailTransactionRequest;
-use App\Http\Requests\UpdateDetailTransactionRequest;
+use App\Interfaces\DetailTransactionRepositoryInterface;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
-class DetailTransactionController extends Controller
+class DetailTransactionController extends Controller 
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    private DetailTransactionRepositoryInterface $detailtransactionRepository;
+
+    public function __construct(DetailTransactionRepositoryInterface $detailtransactionRepository) 
     {
-        //
+        $this->detailTransactionRepository = $detailtransactionRepository;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function index(): JsonResponse 
     {
-        //
+        return response()->json([
+            'data' => $this->detailTransactionRepository->getAllDetailTransactions()
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreDetailTransactionRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreDetailTransactionRequest $request)
+    public function store(Request $request): JsonResponse 
     {
-        //
+        $request->is_delete = 0;
+        $detailTransactionDetails = $request->only([
+            'transaction_id',
+            'product_id',
+            'qty',
+            'total_price',
+            'total_discount',
+            'status',
+            'is_delete'
+        ]);
+
+        return response()->json(
+            [
+                'data' => $this->detailTransactionRepository->createTransaction($transactionDetails)
+            ],
+            Response::HTTP_CREATED
+        );
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\DetailTransaction  $detailTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function show(DetailTransaction $detailTransaction)
+    public function show(Request $request): JsonResponse 
     {
-        //
+        $transactionId = $request->route('id');
+
+        return response()->json([
+            'data' => $this->transactionRepository->getTransactionById($transactionId)
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\DetailTransaction  $detailTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(DetailTransaction $detailTransaction)
+    public function update(Request $request): JsonResponse 
     {
-        //
+        $memberId = $request->route('id');
+        $transactionDetails = $request->only([
+            'no_transaction',
+            'memeber_id',
+            'description',
+            'total_price',
+            'total_discount',
+            'final_price',
+            'status',
+            'is_delete'
+        ]);
+
+        return response()->json([
+            'data' => $this->transactionRepository->updateTransaction($transactionId, $transactionDetails)
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateDetailTransactionRequest  $request
-     * @param  \App\Models\DetailTransaction  $detailTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateDetailTransactionRequest $request, DetailTransaction $detailTransaction)
+    public function destroy(Request $request): JsonResponse 
     {
-        //
-    }
+        $transactionId = $request->route('id');
+        $this->transactionRepository->deleteTransaction($transactionId);
+        $this->detailTransactionRepository->deleteDetailTransaction($transactionId);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\DetailTransaction  $detailTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(DetailTransaction $detailTransaction)
-    {
-        //
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }

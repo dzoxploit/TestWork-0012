@@ -28,20 +28,22 @@ class TransactionController extends Controller
 
     public function store(Request $request): JsonResponse 
     {
-        $request->no_member = IdGenerator::generate(['table' => 'members', 'length' => 10, 'prefix' =>'M-']);
+        $request->no_transaction = IdGenerator::generate(['table' => 'transactions', 'length' => 10, 'prefix' =>'T-']);
         $request->is_delete = 0;
-        $memberDetails = $request->only([
-            'no_member',
-            'name',
-            'address',
-            'phone_number',
+        $transactionDetails = $request->only([
+            'no_transaction',
+            'memeber_id',
+            'description',
+            'total_price',
+            'total_discount',
+            'final_price',
             'status',
             'is_delete'
         ]);
 
         return response()->json(
             [
-                'data' => $this->memberRepository->createMember($memberDetails)
+                'data' => $this->transactionRepository->createTransaction($transactionDetails)
             ],
             Response::HTTP_CREATED
         );
@@ -49,32 +51,37 @@ class TransactionController extends Controller
 
     public function show(Request $request): JsonResponse 
     {
-        $orderId = $request->route('id');
+        $transactionId = $request->route('id');
 
         return response()->json([
-            'data' => $this->memberRepository->getMemberById($memberId)
+            'data' => $this->transactionRepository->getTransactionById($transactionId)
         ]);
     }
 
     public function update(Request $request): JsonResponse 
     {
         $memberId = $request->route('id');
-         $memberDetails = $request->only([
-            'name',
-            'address',
-            'phone_number',
+        $transactionDetails = $request->only([
+            'no_transaction',
+            'memeber_id',
+            'description',
+            'total_price',
+            'total_discount',
+            'final_price',
             'status',
+            'is_delete'
         ]);
 
         return response()->json([
-            'data' => $this->memberRepository->updateMember($memberId, $memberDetails)
+            'data' => $this->transactionRepository->updateTransaction($transactionId, $transactionDetails)
         ]);
     }
 
     public function destroy(Request $request): JsonResponse 
     {
-        $memberId = $request->route('id');
-        $this->memberRepository->deleteMember($memberId);
+        $transactionId = $request->route('id');
+        $this->transactionRepository->deleteTransaction($transactionId);
+        $this->detailTransactionRepository->deleteDetailTransaction($transactionId);
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
