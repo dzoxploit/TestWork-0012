@@ -2,11 +2,11 @@
 
 namespace App\Repositories;
 
-use App\Interfaces\TransactionRepositoryInterface;
+use App\Interfaces\DetailTransactionRepositoryInterface;
 use App\Models\Transaction;
 use App\Models\DetailTransaction;
 
-class TransactionRepository implements TransactionRepositoryInterface 
+class DetailTransactionRepository implements DetailTransactionRepositoryInterface 
 {
     public function getDetailTransactions() 
     {
