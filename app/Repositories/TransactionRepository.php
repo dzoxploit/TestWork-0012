@@ -14,26 +14,26 @@ class TransactionRepository implements TransactionRepositoryInterface
 
     public function getTransactionById($transactionId) 
     {
-        return Transaction::where('is_delete','=',0)->findOrFail($transactionId)->member->detailTransactions;
+        return Transaction::with('member', 'detailTransactions')->where('is_delete','=',0)->findOrFail($transactionId);
     }
 
-    public function deleteTransaction($productId, array $newDetails) 
+    public function deleteTransaction($transactionId, array $newDetails) 
     {
-        Product::where('id','=',$productId)->update($newDetails);
+        Transaction::where('id','=',$transactionId)->update($newDetails);
     }
 
-    public function createProduct(array $productDetails) 
+    public function createTransaction(array $transactionDetails) 
     {
-        return Product::create($productDetails);
+        return Transaction::create($transactionDetails);
     }
 
-    public function updateProduct($productId, array $newDetails) 
+    public function updateTransaction($transactionId, array $newDetails) 
     {
-        return Product::where('is_delete','=',0)->whereId($productId)->update($newDetails);
+        return Transaction::where('is_delete','=',0)->whereId($transactionId)->update($newDetails);
     }
 
-    public function getFulfilledProduct() 
+    public function getFulfilledTransaction() 
     {
-        return Product::where('status', true)->get();
+        return Transaction::with('member', 'detailTransactions')->where('status', true)->get();
     }
 }

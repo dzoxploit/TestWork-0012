@@ -2,85 +2,80 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
-use App\Http\Requests\StoreTransactionRequest;
-use App\Http\Requests\UpdateTransactionRequest;
+use App\Interfaces\TransactionRepositoryInterface;
+use App\Interfaces\DetailTransactionRepositoryInterface;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
-class TransactionController extends Controller
+class TransactionController extends Controller 
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    private TransactionRepositoryInterface $transactionRepository;
+    private DetailTransactionRepositoryInterface $detailtransactionRepository;
+
+    public function __construct(TransactionRepositoryInterface $transactionRepository, DetailTransactionRepositoryInterface $detailtransactionRepository) 
     {
-        //
+        $this->transactionRepository = $transactionRepository;
+        $this->detailTransactionRepository = $detailtransactionRepository;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function index(): JsonResponse 
     {
-        //
+        return response()->json([
+            'data' => $this->transactionRepository->getAllTransactions()
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreTransactionRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreTransactionRequest $request)
+    public function store(Request $request): JsonResponse 
     {
-        //
+        $request->no_member = IdGenerator::generate(['table' => 'members', 'length' => 10, 'prefix' =>'M-']);
+        $request->is_delete = 0;
+        $memberDetails = $request->only([
+            'no_member',
+            'name',
+            'address',
+            'phone_number',
+            'status',
+            'is_delete'
+        ]);
+
+        return response()->json(
+            [
+                'data' => $this->memberRepository->createMember($memberDetails)
+            ],
+            Response::HTTP_CREATED
+        );
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Transaction $transaction)
+    public function show(Request $request): JsonResponse 
     {
-        //
+        $orderId = $request->route('id');
+
+        return response()->json([
+            'data' => $this->memberRepository->getMemberById($memberId)
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Transaction $transaction)
+    public function update(Request $request): JsonResponse 
     {
-        //
+        $memberId = $request->route('id');
+         $memberDetails = $request->only([
+            'name',
+            'address',
+            'phone_number',
+            'status',
+        ]);
+
+        return response()->json([
+            'data' => $this->memberRepository->updateMember($memberId, $memberDetails)
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateTransactionRequest  $request
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateTransactionRequest $request, Transaction $transaction)
+    public function destroy(Request $request): JsonResponse 
     {
-        //
-    }
+        $memberId = $request->route('id');
+        $this->memberRepository->deleteMember($memberId);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Transaction $transaction)
-    {
-        //
+        return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 }
