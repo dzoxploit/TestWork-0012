@@ -8,6 +8,11 @@ use App\Interfaces\ProductRepositoryInterface;
 use App\Repositories\MemberRepository;
 use App\Repositories\ProductRepository;
 
+use App\Interfaces\TransactionRepositoryInterface;
+use App\Interfaces\DetailTransactionRepositoryInterface;
+use App\Repositories\TransactionRepository;
+use App\Repositories\DetailTransactionRepository;
+
 class RepositoryServiceProvider extends ServiceProvider
 {
     /**
@@ -19,6 +24,8 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         $this->app->bind(MemberRepositoryInterface::class, MemberRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
+        $this->app->bind(TransactionRepositoryInterface::class, TransactionRepository::class);
+        $this->app->bind(DetailTransactionRepositoryInterface::class, DetailTransactionRepository::class);
     }
 
     /**

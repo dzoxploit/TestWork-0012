@@ -38,7 +38,7 @@ class DetailTransactionController extends Controller
 
         return response()->json(
             [
-                'data' => $this->detailTransactionRepository->createTransaction($transactionDetails)
+                'data' => $this->detailTransactionRepository->createTransaction($detailTransactionDetails)
             ],
             Response::HTTP_CREATED
         );
@@ -46,37 +46,44 @@ class DetailTransactionController extends Controller
 
     public function show(Request $request): JsonResponse 
     {
-        $transactionId = $request->route('id');
+        $detailTransactionId = $request->route('id');
 
         return response()->json([
-            'data' => $this->transactionRepository->getTransactionById($transactionId)
+            'data' => $this->detailTransactionRepository->getDetailTransactionById($detailTransactionId)
         ]);
     }
 
+    public function showByTransactionId(Request $request): JsonResponse 
+    {
+        $transactionId = $request->route('id');
+
+        return response()->json([
+            'data' => $this->detailTransactionRepository->getDetailTransactionByTransactionId($transactionId)
+        ]);
+    }
+
+
     public function update(Request $request): JsonResponse 
     {
-        $memberId = $request->route('id');
-        $transactionDetails = $request->only([
-            'no_transaction',
-            'memeber_id',
-            'description',
+        $detailTransactionId = $request->route('id');
+        $detailTransactionDetails = $request->only([
+            'product_id',
+            'qty',
             'total_price',
             'total_discount',
-            'final_price',
             'status',
             'is_delete'
         ]);
 
         return response()->json([
-            'data' => $this->transactionRepository->updateTransaction($transactionId, $transactionDetails)
+            'data' => $this->detailTransactionRepository->updateTransaction($detailTransactionId, $detailTransactionDetails)
         ]);
     }
 
     public function destroy(Request $request): JsonResponse 
     {
-        $transactionId = $request->route('id');
-        $this->transactionRepository->deleteTransaction($transactionId);
-        $this->detailTransactionRepository->deleteDetailTransaction($transactionId);
+        $detailTransactionId = $request->route('id');
+        $this->detailTransactionRepository->deleteDetailTransaction2($detailTransactionId);
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }

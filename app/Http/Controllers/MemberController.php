@@ -46,7 +46,7 @@ class MemberController extends Controller
 
     public function show(Request $request): JsonResponse 
     {
-        $orderId = $request->route('id');
+        $memberId = $request->route('id');
 
         return response()->json([
             'data' => $this->memberRepository->getMemberById($memberId)

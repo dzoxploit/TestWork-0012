@@ -50,7 +50,7 @@ class ProductController extends Controller
 
     public function show(Request $request): JsonResponse 
     {
-        $orderId = $request->route('id');
+        $productId = $request->route('id');
 
         return response()->json([
             'data' => $this->productRepository->getProductById($productId)
@@ -59,7 +59,7 @@ class ProductController extends Controller
 
     public function update(Request $request): JsonResponse 
     {
-        $memberId = $request->route('id');
+        $productId = $request->route('id');
         if($request->hasFile('image')){
                 $name = $request->file('image')->getClientOriginalName();
                 $path = $request->file('image')->store('public/files');

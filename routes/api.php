@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\DetailTransactionController;
 
 
 /*
@@ -44,6 +46,18 @@ Route::group(['middleware' => ['auth:api']], function () {
      Route::put('products/{id}', [ProductController::class, 'update']);
      Route::delete('products/{id}', [ProductController::class, 'delete']);
 
+     Route::get('transactions', [TransactionController::class, 'index']);
+     Route::get('transactions/{id}', [TransactionController::class, 'show']);
+     Route::post('transactions', [TransactionController::class, 'store']);
+     Route::put('transactions/{id}', [TransactionController::class, 'update']);
+     Route::delete('transactions/{id}', [TransactionController::class, 'delete']);
+
+     Route::get('detail-transactions', [DetailTransactionController::class, 'index']);
+     Route::get('detail-transactions/{id}', [DetailTransactionController::class, 'show']);
+     Route::get('transactions/detail/{id}', [DetailTransactionController::class, 'showByTransactionId']);
+     Route::post('detail-transactions', [DetailTransactionController::class, 'store']);
+     Route::put('detail-transactions/{id}', [DetailTransactionController::class, 'update']);
+     Route::delete('detail-transactions/{id}', [DetailTransactionController::class, 'delete']);
 
      Route::get('berhasil', [AuthController::class, 'indexcuy']);
      Route::post('logout', [AuthController::class, 'logout']);
